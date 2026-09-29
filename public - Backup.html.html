@@ -47,7 +47,15 @@ table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:11px 8px
 <main>
 <div class="card"><div class="notice">Results are updated from the official league database.</div></div>
 <div class="card"><h2>🏆 League Table PEA Male Students 2026</h2><div class="wrap"><table><thead><tr><th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody id="table"></tbody></table></div></div>
-<div class="card"><h2>📅 Fixtures & Results</h2><div id="fixtures"></div></div>
+<div class="card">
+  <h2>📅 Fixtures</h2>
+  <div id="fixtures"></div>
+</div>
+
+<div class="card">
+  <h2>🏁 Results</h2>
+  <div id="results"></div>
+</div>
 </main>
 <script>
 const API="https://script.google.com/macros/s/AKfycbyKqm-wZei1vz4YQEp9QmdfPQBxQbQTJEFhdvQkbbrNnyRo6pJv8CbpEnHuZ_9vsDbR/exec";
@@ -59,8 +67,27 @@ results.forEach(r=>{let h=s[r.home],a=s[r.away];h.p++;a.p++;h.gf+=r.homeGoals;a.
 if(r.homeGoals>r.awayGoals){h.w++;h.pts+=3;a.l++}else if(r.homeGoals<r.awayGoals){a.w++;a.pts+=3;h.l++}else{h.d++;a.d++;h.pts++;a.pts++}});
 let rows=teams.map(t=>({...s[t],team:t,gd:s[t].gf-s[t].ga})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.team.localeCompare(b.team));
 document.getElementById("table").innerHTML=rows.map((x,i)=>`<tr><td>${i+1}</td><td><b>${x.team}</b></td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td><b>${x.pts}</b></td></tr>`).join("");
-document.getElementById("fixtures").innerHTML=fixtures.map(f=>{let r=results.find(x=>x.home===f.home&&x.away===f.away);return `<div class="match"><div class="home">${f.home}</div><div class="score">${r?r.homeGoals+" - "+r.awayGoals:"vs"}</div><div class="away">${f.away}</div></div>`}).join("");
-}
+document.getElementById("fixtures").innerHTML=fixtures
+.filter(f=>!results.find(x=>x.home===f.home&&x.away===f.away))
+.map(f=>
+<div class="match">
+  <div class="home">${f.home}</div>
+  <div class="score">vs</div>
+  <div class="away">${f.away}</div>
+</div>
+).join("");
+
+document.getElementById("results").innerHTML=fixtures
+.map(f=>{
+  let r=results.find(x=>x.home===f.home&&x.away===f.away);
+  if(!r) return "";
+  return 
+  <div class="match">
+    <div class="home">${f.home}</div>
+    <div class="score">${r.homeGoals} - ${r.awayGoals}</div>
+    <div class="away">${f.away}</div>
+  </div>;
+}).join("");
 async function load(){try{let r=await fetch(API+"?action=results");let j=await r.json();render(j.results||[])}catch(e){document.getElementById("table").innerHTML="<tr><td colspan=10>Connect the database URL in the website settings.</td></tr>";render([])}}
 load();
 </script></body></html>
